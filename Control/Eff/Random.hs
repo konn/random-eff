@@ -22,6 +22,8 @@ import Data.Typeable    (Typeable1 (..), typeOfDefault)
 import System.Random
 
 -- | Wrapper Type for 'RandomGen' types
+--
+-- Since 0.1.0.0
 data Generator = forall g. RandomGen g => Generator g
 
 instance Typeable Generator where
@@ -30,6 +32,8 @@ instance Typeable Generator where
       gen = mkTyCon3 "random-eff" "Control.Eff.Random" "Generator"
 
 -- | This behaves exactly as same as the original, un-quantified instance.
+--
+-- Since 0.1.0.0
 instance RandomGen Generator where
   next (Generator g) = second Generator $ next g
   genRange (Generator g) = genRange g
@@ -38,6 +42,8 @@ instance RandomGen Generator where
     in (Generator h, Generator h')
 
 -- | Random number generator
+--
+-- Since 0.1.0.0
 data Rand a = Rand (Generator -> (a, Generator))
 
 instance Functor Rand where
@@ -50,30 +56,40 @@ instance Typeable a => Typeable (Rand a) where
   typeOf = typeOfDefault
 
 -- | Return a randomly-selected value of type a. See 'random' for details.
+--
+-- Since 0.1.0.0
 getRandom :: forall a r. (Typeable a, Random a, Member Rand r) => Eff r a
 getRandom = send $ \k ->
   inj $ Rand (\(Generator g) -> let (a :: a, g') = random g
                     in (k a, Generator g'))
 
 -- | Return an infinite stream of random values of type a. See 'randoms' for details.
+--
+-- Since 0.1.0.0
 getRandoms :: (Random a, Typeable a, Member Rand r) => Eff r [a]
 getRandoms = send $ \k ->
   inj $ Rand (\(Generator g) -> let (g', g'') = split g
                     in (k (randoms g'), Generator g''))
 
 -- | Return a randomly-selected value of type a in the range @(lo,hi)@. See 'randomR' for details.
+--
+-- Since 0.1.0.0
 getRandomR :: (Typeable a, Random a, Member Rand r) => (a, a) -> Eff r a
 getRandomR bd = send $ \k ->
   inj $ Rand (\(Generator g) -> let (a, g') = randomR bd g
                     in (k a, Generator g'))
 
 -- | Return an infinite stream of randomly-selected value of type a in the range @(lo,hi)@. See 'randomRs' for details.
+--
+-- Since 0.1.0.0
 getRandomRs :: (Typeable a, Random a, Member Rand r) => (a, a) -> Eff r [a]
 getRandomRs bd = send $ \k ->
   inj $ Rand (\(Generator g) -> let (g', g'') = split g in (k (randomRs bd g'), Generator g''))
 
 
 -- | Sample a random value from a weighted list. The total weight of all elements must not be 0.
+--
+-- Since 0.1.0.0
 fromList :: Member Rand r => [(a, Rational)] -> Eff r a
 fromList [] = error "Eff.Random.fromList called with empty list"
 fromList [(x, _)] = return x
@@ -84,16 +100,22 @@ fromList xs = do
   return . fst . head $ dropWhile (\(_,q) -> q < p) cs
 
 -- | Sample a value from a uniform distribution of a list of elements.
+--
+-- Since 0.1.0.0
 uniform :: Member Rand r => [a] -> Eff r a
 uniform xs = fromList $ map (flip (,) 1) xs
 
 -- | Split the internal generator. This returns the second result of 'split'
 --   and set the new internal generator to the first one.
+--
+-- Since 0.1.0.0
 getSplit :: (Member Rand r) => Eff r Generator
 getSplit = send $ \k ->
   inj $ Rand (\(Generator g) -> let (g', g'') = split g in (k (Generator g''), Generator g'))
 
 -- | Run a computation with random numbers
+--
+-- Since 0.1.0.0
 runRand :: RandomGen g
         => g                    -- ^ initial internal random generator
         -> Eff (Rand :> r) w    -- ^ Effect using random numbers
@@ -110,10 +132,14 @@ runRand g0 = loop (Generator g0) . admin
       in loop g' a
 
 -- | Run a computation with random numbers, discarding the final generator.
+--
+-- Since 0.1.0.0
 evalRand :: RandomGen g => g -> Eff (Rand :> r) w -> Eff r w
 evalRand g = liftM fst . runRand g
 
 -- | Run a computation with random numbers, using 'newStdGen' as its initial generator.
+--
+-- Since 0.1.0.0
 evalRandIO :: SetMember Lift (Lift IO) r => Eff (Rand :> r) w -> Eff r w
 evalRandIO eff = do
   g <- lift newStdGen
