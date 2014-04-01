@@ -86,7 +86,6 @@ getRandomRs :: (Typeable a, Random a, Member Rand r) => (a, a) -> Eff r [a]
 getRandomRs bd = send $ \k ->
   inj $ Rand (\(Generator g) -> let (g', g'') = split g in (k (randomRs bd g'), Generator g''))
 
-
 -- | Sample a random value from a weighted list. The total weight of all elements must not be 0.
 --
 -- Since 0.1.0.0

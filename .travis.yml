@@ -11,6 +11,14 @@ before_install:
 
 install:
   - cabal-1.18 update
+  - if [ $GHCVER = "7.8.1" -o $GHCVER = "head" ]; then
+      pushd;
+      git clone https://github.com/RobotGymnast/extensible-effects.git;
+      cd extensible-effects;
+      git checkout b355de8505b2eea3b46ee714871b763fa86dd9d0;
+      cabal-1.18 install;
+      popd;
+    fi
   - cabal-1.18 install --only-dependencies --enable-tests --enable-benchmarks
 
 script:
