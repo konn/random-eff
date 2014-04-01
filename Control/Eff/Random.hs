@@ -18,7 +18,6 @@ import Control.Eff
 import Control.Eff.Lift (Lift, lift)
 import Control.Monad    (liftM)
 import Data.Typeable    (Typeable (..), mkTyCon3, mkTyConApp)
-import Data.Typeable    (Typeable1 (..), typeOfDefault)
 import System.Random
 
 -- | Wrapper Type for 'RandomGen' types
@@ -45,15 +44,10 @@ instance RandomGen Generator where
 --
 -- Since 0.1.0.0
 data Rand a = Rand (Generator -> (a, Generator))
+              deriving (Typeable)
 
 instance Functor Rand where
   fmap g (Rand f) = Rand (first g . f)
-
-instance Typeable1 Rand where
-  typeOf1 _ = mkTyConApp (mkTyCon3 "package" "Control.Eff.Random" "Rand") []
-
-instance Typeable a => Typeable (Rand a) where
-  typeOf = typeOfDefault
 
 -- | Return a randomly-selected value of type a. See 'random' for details.
 --
