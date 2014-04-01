@@ -1,7 +1,7 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveFunctor, ExistentialQuantification #-}
-{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses                      #-}
-{-# LANGUAGE NoMonomorphismRestriction, ScopedTypeVariables               #-}
-{-# LANGUAGE StandaloneDeriving, TypeOperators                            #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, DeriveFunctor                 #-}
+{-# LANGUAGE ExistentialQuantification, FlexibleContexts            #-}
+{-# LANGUAGE MultiParamTypeClasses, NoMonomorphismRestriction       #-}
+{-# LANGUAGE ScopedTypeVariables, StandaloneDeriving, TypeOperators #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Control.Eff.Random (module System.Random,
                            Rand, Generator(..),
@@ -24,11 +24,14 @@ import System.Random
 --
 -- Since 0.1.0.0
 data Generator = forall g. RandomGen g => Generator g
-
+#if MIN_VERSION_base(4,7,0)
+                 deriving (Typeable)
+#else
 instance Typeable Generator where
   typeOf _ = mkTyConApp gen []
     where
       gen = mkTyCon3 "random-eff" "Control.Eff.Random" "Generator"
+#endif
 
 -- | This behaves exactly as same as the original, un-quantified instance.
 --
